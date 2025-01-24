@@ -13,6 +13,8 @@ services:
 
   yolo_api:
     build: ./yolo_api/
+    volumes:
+      - ./yolo_api:/app
     networks:
       local_network:
         aliases:
@@ -26,6 +28,8 @@ services:
 
   mask_rcnn_api:
     build: ./mask_rcnn_api/
+    volumes:
+      - ./mask_rcnn_api:/app
     networks:
       local_network:
         aliases:
