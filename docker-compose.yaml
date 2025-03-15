@@ -34,6 +34,8 @@ services:
       local_network:
         aliases:
           - mask_rcnn_api_endpoint
+    ports:
+      - "5000:5000"
     tty: true
     ipc: host
     deploy:

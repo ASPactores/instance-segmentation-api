@@ -9,7 +9,7 @@ import numpy as np
 from fastapi import FastAPI, APIRouter, UploadFile, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from PIL import Image
+from PIL import Image, ImageOps
 
 from mrcnn.config import Config
 from mrcnn import model as modellib
@@ -34,9 +34,10 @@ class LoculeCount(BaseModel):
 
 class ModelConfig(Config):
     NAME = "model_config"
-    BACKBONE = "resnet50"
+    BACKBONE = "resnet101"
     IMAGES_PER_GPU = 1
     NUM_CLASSES = 2 + 1
+    IMAGE_RESIZE_MODE = "square"
 
 models = {}
 
@@ -49,7 +50,7 @@ def initialize():
     try:
         print("Initializing model...")
         models['mask-rcnn'] = modellib.MaskRCNN(mode="inference", model_dir=os.getcwd(), config=ModelConfig())
-        models['mask-rcnn'].load_weights('./mask_rcnn_locules_0003.h5', by_name=True)
+        models['mask-rcnn'].load_weights('./mask_rcnn_locules_0080.h5', by_name=True)
         print("Model loaded successfully.")
     except Exception as e:
         print(f"Error initializing the model: {e}")
@@ -101,6 +102,7 @@ async def count_locules(input: UploadFile) -> LoculeCount:
             np_array_image = np_array_image[:, :, :3]
             
         masked_image = Image.fromarray(np_array_image)
+        masked_image = ImageOps.crop(masked_image, border=get_white_border(masked_image))
 
         # Convert the visualized image to base64
         img_byte_arr = io.BytesIO()
@@ -118,3 +120,22 @@ async def count_locules(input: UploadFile) -> LoculeCount:
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Error processing image: {e}",
         )
+
+def get_white_border(image: Image):
+    """Detects the white border and returns the amount to crop."""
+    image_np = np.array(image)
+    
+    # Convert to grayscale and create a mask of non-white pixels
+    gray_image = np.mean(image_np, axis=-1)
+    mask = gray_image < 255  # Assuming white is (255,255,255)
+    
+    # Get the bounding box of non-white pixels
+    coords = np.argwhere(mask)
+    if coords.shape[0] == 0:
+        return (0, 0, 0, 0)  # No white border detected
+    
+    y_min, x_min = coords.min(axis=0)
+    y_max, x_max = coords.max(axis=0)
+    
+    # Compute the border to crop
+    return (x_min, y_min, image.width - x_max, image.height - y_max)

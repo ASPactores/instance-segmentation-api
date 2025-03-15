@@ -13,3 +13,5 @@ seaborn
 scikit-learn
 fastapi==0.83.0
 pydantic
+python-multipart
+python-dotenv
