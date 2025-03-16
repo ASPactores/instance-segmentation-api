@@ -1,11 +1,9 @@
 from typing import List
-# from pydantic_settings import BaseSettings
 
-# class Settings(BaseSettings):
 class Settings:
     # API settings
     APP_TITLE: str = "YOLOv9 API"
-    ROOT_PATH: str = "/api/yolo-inference"
+    ROOT_PATH: str = "/api"
     
     # CORS settings
     CORS_ORIGINS: List[str] = ["*"]  # Change this for production
