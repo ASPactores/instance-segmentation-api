@@ -1,49 +1,13 @@
 services:
-  nginx:
-    image: nginx:latest
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
-    depends_on:
-      - yolo_api
-      - mask_rcnn_api
-    networks:
-      local_network:
-
   yolo_api:
-    build: ./yolo_api/
+    build: .
     volumes:
-      - ./yolo_api:/app
-    networks:
-      local_network:
-        aliases:
-          - yolo_api_endpoint
+      - .:/app
     ipc: host
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - capabilities: [gpu]
-
-  mask_rcnn_api:
-    build: ./mask_rcnn_api/
-    volumes:
-      - ./mask_rcnn_api:/app
-    networks:
-      local_network:
-        aliases:
-          - mask_rcnn_api_endpoint
     ports:
-      - "5000:5000"
-    tty: true
-    ipc: host
+      - "4000:4000"
     deploy:
       resources:
         reservations:
           devices:
             - capabilities: [gpu]
-
-networks:
-  local_network:
-    driver: bridge
